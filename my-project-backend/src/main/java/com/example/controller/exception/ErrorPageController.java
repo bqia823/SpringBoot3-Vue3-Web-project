@@ -13,8 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 专用用于处理错误页面的Controller
+ * Controller dedicated to handling error pages
  */
+
 @RestController
 @RequestMapping({"${server.error.path:${error.path:/error}}"})
 public class ErrorPageController extends AbstractErrorController {
@@ -23,11 +24,6 @@ public class ErrorPageController extends AbstractErrorController {
         super(errorAttributes);
     }
 
-    /**
-     * 所有错误在这里统一处理，自动解析状态码和原因
-     * @param request 请求
-     * @return 失败响应
-     */
     @RequestMapping
     public RestBean<Void> error(HttpServletRequest request) {
         HttpStatus status = this.getStatus(request);
@@ -38,25 +34,27 @@ public class ErrorPageController extends AbstractErrorController {
     }
 
     /**
-     * 对于一些特殊的状态码，错误信息转换
-     * @param status 状态码
-     * @return 错误信息
+     * Converts error messages for certain special status codes
+     * @param status the status code
+     * @return the error message
      */
-    private Optional<String> convertErrorMessage(HttpStatus status){
+
+    private Optional<String> convertErrorMessage(HttpStatus status) {
         String value = switch (status.value()) {
-            case 400 -> "请求参数有误";
-            case 404 -> "请求的接口不存在";
-            case 405 -> "请求方法错误";
-            case 500 -> "内部错误，请联系管理员";
+            case 400 -> "Invalid request parameters";
+            case 404 -> "Requested endpoint does not exist";
+            case 405 -> "Incorrect request method";
+            case 500 -> "Internal error, please contact the administrator";
             default -> null;
         };
         return Optional.ofNullable(value);
     }
 
     /**
-     * 错误属性获取选项，这里额外添加了错误消息和异常类型
-     * @return 选项
+     * Error attribute options, here we additionally include error message and exception type
+     * @return options
      */
+
     private ErrorAttributeOptions getAttributeOptions(){
         return ErrorAttributeOptions
                 .defaults()

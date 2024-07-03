@@ -27,54 +27,45 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Swagger开发文档相关配置
+ * Configuration related to Swagger API documentation
  */
+
 @Configuration
 @SecurityScheme(type = SecuritySchemeType.HTTP, scheme = "Bearer",
         name = "Authorization", in = SecuritySchemeIn.HEADER)
 @OpenAPIDefinition(security = { @SecurityRequirement(name = "Authorization") })
 public class SwaggerConfiguration {
 
-    /**
-     * 配置文档介绍以及详细信息
-     * @return OpenAPI
-     */
     @Bean
     public OpenAPI springShopOpenAPI() {
         return new OpenAPI()
-                .info(new Info().title("示例项目 API 文档")
-                        .description("欢迎来到本示例项目API测试文档，在这里可以快速进行接口调试")
+                .info(new Info().title("Sample Project API Documentation")
+                        .description("Welcome to the API testing documentation of this sample project. Here, you can quickly test and debug the interfaces.")
                         .version("1.0")
                         .license(new License()
-                                .name("项目开源地址")
+                                .name("Project open-source repository URL")
                                 .url("https://github.com/Ketuer/SpringBoot-Vue-Template-Jwt")
                         )
-                )
-                .externalDocs(new ExternalDocumentation()
-                        .description("我们的官方网站")
-                        .url("https://itbaima.net")
                 );
     }
 
     /**
-     * 配置自定义的OpenApi相关信息
+     * Configures custom OpenAPI-related information
      * @return OpenApiCustomizer
      */
+
     @Bean
     public OpenApiCustomizer customerGlobalHeaderOpenApiCustomizer() {
         return api -> this.authorizePathItems().forEach(api.getPaths()::addPathItem);
     }
 
-    /**
-     * 登录接口和退出登录接口手动添加一下
-     * @return PathItems
-     */
     private Map<String, PathItem> authorizePathItems(){
         Map<String, PathItem> map = new HashMap<>();
         map.put("/api/auth/login", new PathItem()
                 .post(new Operation()
-                        .tags(List.of("登录校验相关"))
-                        .summary("登录验证接口")
+                        .tags(List.of("\n" +
+                                "Login verification related"))
+                        .summary("Login verification endpoint")
                         .addParametersItem(new QueryParameter()
                                 .name("username")
                                 .required(true)
@@ -95,8 +86,8 @@ public class SwaggerConfiguration {
         );
         map.put("/api/auth/logout", new PathItem()
                 .get(new Operation()
-                        .tags(List.of("登录校验相关"))
-                        .summary("退出登录接口")
+                        .tags(List.of("Login verification related"))
+                        .summary("Login verification endpoint")
                         .responses(new ApiResponses()
                                 .addApiResponse("200", new ApiResponse()
                                         .description("OK")

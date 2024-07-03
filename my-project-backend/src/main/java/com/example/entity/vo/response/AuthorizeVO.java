@@ -5,8 +5,9 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * 登录验证成功的用户信息响应
+ * User information response upon successful login verification
  */
+
 @Data
 public class AuthorizeVO {
     String username;

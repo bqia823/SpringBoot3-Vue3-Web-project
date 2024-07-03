@@ -9,15 +9,18 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
- * 用于DTO快速转换VO实现，只需将DTO类继承此类即可使用
+ * Interface for quick DTO to VO conversion implementation
+ * simply extend the DTO class with this interface to use
  */
 public interface BaseData {
+
     /**
-     * 创建指定的VO类并将当前DTO对象中的所有成员变量值直接复制到VO对象中
-     * @param clazz 指定VO类型
-     * @param consumer 返回VO对象之前可以使用Lambda进行额外处理
-     * @return 指定VO对象
-     * @param <V> 指定VO类型
+     * Creates a specified VO class and directly copies all member variable
+     * values from the current DTO object to the VO object
+     * @param clazz the specified VO type
+     * @param consumer additional processing using Lambda before returning the VO object
+     * @return the specified VO object
+     * @param <V> the specified VO type
      */
     default <V> V asViewObject(Class<V> clazz, Consumer<V> consumer) {
         V v = this.asViewObject(clazz);
@@ -26,10 +29,11 @@ public interface BaseData {
     }
 
     /**
-     * 创建指定的VO类并将当前DTO对象中的所有成员变量值直接复制到VO对象中
-     * @param clazz 指定VO类型
-     * @return 指定VO对象
-     * @param <V> 指定VO类型
+     * Creates a specified VO class and directly copies all member
+     * variable values from the current DTO object to the VO object
+     * @param clazz the specified VO type
+     * @return the specified VO object
+     * @param <V> the specified VO type
      */
     default <V> V asViewObject(Class<V> clazz) {
         try {
@@ -40,15 +44,16 @@ public interface BaseData {
             return v;
         } catch (ReflectiveOperationException exception) {
             Logger logger = LoggerFactory.getLogger(BaseData.class);
-            logger.error("在VO与DTO转换时出现了一些错误", exception);
+            logger.error("An error occurred during the conversion between VO and DTO", exception);
             throw new RuntimeException(exception.getMessage());
         }
     }
 
     /**
-     * 内部使用，快速将当前类中目标对象字段同名字段的值复制到目标对象字段上
-     * @param field 目标对象字段
-     * @param target 目标对象
+     * For internal use, quickly copies the value of a target object's
+     * field with the same name from the current class to the target object's field
+     * @param field the target object field
+     * @param target the target object
      */
     private void convert(Field field, Object target){
         try {

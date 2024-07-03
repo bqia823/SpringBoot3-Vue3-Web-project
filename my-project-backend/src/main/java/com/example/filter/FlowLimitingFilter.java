@@ -19,8 +19,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * 限流控制过滤器
- * 防止用户高频请求接口，借助Redis进行限流
+ * Rate limiting filter to prevent users from making high-frequency
+ * requests. Utilizes Redis for rate limiting.
  */
 @Slf4j
 @Component
@@ -29,13 +29,13 @@ public class FlowLimitingFilter extends HttpFilter {
 
     @Resource
     StringRedisTemplate template;
-    //指定时间内最大请求次数限制
+    // Maximum request limit within the specified time period
     @Value("${spring.web.flow.limit}")
     int limit;
-    //计数时间周期
+    // Time period for counting requests
     @Value("${spring.web.flow.period}")
     int period;
-    //超出请求限制封禁时间
+    // Block duration after exceeding the request limit
     @Value("${spring.web.flow.block}")
     int block;
 
@@ -51,14 +51,16 @@ public class FlowLimitingFilter extends HttpFilter {
             chain.doFilter(request, response);
     }
 
+
     /**
-     * 尝试对指定IP地址请求计数，如果被限制则无法继续访问
-     * @param address 请求IP地址
-     * @return 是否操作成功
+     * Attempts to count requests from a specific IP address.
+     * If the limit is exceeded, further access is denied.
+     * @param address the request IP address
+     * @return whether the operation was successful
      */
     private boolean tryCount(String address) {
         synchronized (address.intern()) {
-            if(Boolean.TRUE.equals(template.hasKey(Const.FLOW_LIMIT_BLOCK + address)))
+            if (Boolean.TRUE.equals(template.hasKey(Const.FLOW_LIMIT_BLOCK + address)))
                 return false;
             String counterKey = Const.FLOW_LIMIT_COUNTER + address;
             String blockKey = Const.FLOW_LIMIT_BLOCK + address;
@@ -67,14 +69,15 @@ public class FlowLimitingFilter extends HttpFilter {
     }
 
     /**
-     * 为响应编写拦截内容，提示用户操作频繁
-     * @param response 响应
-     * @throws IOException 可能的异常
+     * Writes a block message to the response, indicating that the
+     * user is making requests too frequently.
+     * @param response the response
+     * @throws IOException possible exception
      */
     private void writeBlockMessage(HttpServletResponse response) throws IOException {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=utf-8");
         PrintWriter writer = response.getWriter();
-        writer.write(RestBean.forbidden("操作频繁，请稍后再试").asJsonString());
+        writer.write(RestBean.forbidden("Too many requests, please try again later").asJsonString());
     }
 }

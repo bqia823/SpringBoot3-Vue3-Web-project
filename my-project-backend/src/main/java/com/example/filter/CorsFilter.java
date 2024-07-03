@@ -13,7 +13,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * 跨域配置过滤器，仅处理跨域，添加跨域响应头
+ * CORS configuration filter, handles only CORS and adds CORS
+ * response headers
  */
 @Component
 @Order(Const.ORDER_CORS)
@@ -35,9 +36,9 @@ public class CorsFilter extends HttpFilter {
     }
 
     /**
-     * 添加所有跨域相关响应头
-     * @param request 请求
-     * @param response 响应
+     * Adds all CORS-related response headers
+     * @param request the request
+     * @param response the response
      */
     private void addCorsHeader(HttpServletRequest request, HttpServletResponse response) {
         response.addHeader("Access-Control-Allow-Origin", this.resolveOrigin(request));
@@ -49,17 +50,17 @@ public class CorsFilter extends HttpFilter {
     }
 
     /**
-     * 解析配置文件中的请求方法
-     * @return 解析得到的请求头值
+     * Parses the request methods from the configuration file
+     * @return the resolved request methods
      */
     private String resolveMethod(){
         return methods.equals("*") ? "GET, HEAD, POST, PUT, DELETE, OPTIONS, TRACE, PATCH" : methods;
     }
 
     /**
-     * 解析配置文件中的请求原始站点
-     * @param request 请求
-     * @return 解析得到的请求头值
+     * Parses the request origin from the configuration file
+     * @param request the request
+     * @return the resolved request origin
      */
     private String resolveOrigin(HttpServletRequest request){
         return origin.equals("*") ? request.getHeader("Origin") : origin;

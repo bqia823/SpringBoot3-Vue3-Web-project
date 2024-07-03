@@ -27,12 +27,12 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 账户信息处理相关服务
+ * Service for handling account information
  */
 @Service
 public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> implements AccountService {
 
-    //验证邮件发送冷却时间限制，秒为单位
+    // Cool down the time limit for sending verification emails, in seconds
     @Value("${spring.web.verify.mail-limit}")
     int verifyLimit;
 
@@ -49,16 +49,16 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     FlowUtils flow;
 
     /**
-     * 从数据库中通过用户名或邮箱查找用户详细信息
-     * @param username 用户名
-     * @return 用户详细信息
-     * @throws UsernameNotFoundException 如果用户未找到则抛出此异常
+     * Finds user details by username or email from the database
+     * @param username the username
+     * @return user details
+     * @throws UsernameNotFoundException if the user is not found
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Account account = this.findAccountByNameOrEmail(username);
         if(account == null)
-            throw new UsernameNotFoundException("用户名或密码错误");
+            throw new UsernameNotFoundException("Incorrect username or password");
         return User
                 .withUsername(username)
                 .password(account.getPassword())
@@ -67,16 +67,16 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     /**
-     * 生成注册验证码存入Redis中，并将邮件发送请求提交到消息队列等待发送
-     * @param type 类型
-     * @param email 邮件地址
-     * @param address 请求IP地址
-     * @return 操作结果，null表示正常，否则为错误原因
+     * Generates a registration verification code, stores it in Redis, and submits an email send request to the message queue
+     * @param type the type
+     * @param email the email address
+     * @param address the request IP address
+     * @return the result of the operation, null if normal, otherwise the reason for the error
      */
     public String registerEmailVerifyCode(String type, String email, String address){
         synchronized (address.intern()) {
             if(!this.verifyLimit(address))
-                return "请求频繁，请稍后再试";
+                return "Too many requests, please try again later";
             Random random = new Random();
             int code = random.nextInt(899999) + 100000;
             Map<String, Object> data = Map.of("type",type,"email", email, "code", code);
@@ -88,23 +88,23 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     /**
-     * 邮件验证码注册账号操作，需要检查验证码是否正确以及邮箱、用户名是否存在重名
-     * @param info 注册基本信息
-     * @return 操作结果，null表示正常，否则为错误原因
+     * Registers an account using an email verification code, checking if the code is correct and if the email or username is already taken
+     * @param info registration information
+     * @return the result of the operation, null if normal, otherwise the reason for the error
      */
     public String registerEmailAccount(EmailRegisterVO info){
         String email = info.getEmail();
         String code = this.getEmailVerifyCode(email);
-        if(code == null) return "请先获取验证码";
-        if(!code.equals(info.getCode())) return "验证码错误，请重新输入";
-        if(this.existsAccountByEmail(email)) return "该邮件地址已被注册";
+        if(code == null) return "Please get the verification code first";
+        if(!code.equals(info.getCode())) return "Incorrect verification code, please re-enter";
+        if(this.existsAccountByEmail(email)) return "This email address is already registered";
         String username = info.getUsername();
-        if(this.existsAccountByUsername(username)) return "该用户名已被他人使用，请重新更换";
+        if(this.existsAccountByUsername(username)) return "This username is already taken, please choose another";
         String password = passwordEncoder.encode(info.getPassword());
         Account account = new Account(null, info.getUsername(),
                 password, email, Const.ROLE_DEFAULT, new Date());
         if(!this.save(account)) {
-            return "内部错误，注册失败";
+            return "Internal error, registration failed";
         } else {
             this.deleteEmailVerifyCode(email);
             return null;
@@ -112,9 +112,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     /**
-     * 邮件验证码重置密码操作，需要检查验证码是否正确
-     * @param info 重置基本信息
-     * @return 操作结果，null表示正常，否则为错误原因
+     * Resets the password using an email verification code, checking if the code is correct
+     * @param info reset information
+     * @return the result of the operation, null if normal, otherwise the reason for the error
      */
     @Override
     public String resetEmailAccountPassword(EmailResetVO info) {
@@ -126,26 +126,26 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         if(update) {
             this.deleteEmailVerifyCode(email);
         }
-        return update ? null : "更新失败，请联系管理员";
+        return update ? null : "Update failed, please contact the administrator";
     }
 
     /**
-     * 重置密码确认操作，验证验证码是否正确
-     * @param info 验证基本信息
-     * @return 操作结果，null表示正常，否则为错误原因
+     * Confirms the password reset by verifying the verification code
+     * @param info verification information
+     * @return the result of the operation, null if normal, otherwise the reason for the error
      */
     @Override
     public String resetConfirm(ConfirmResetVO info) {
         String email = info.getEmail();
         String code = this.getEmailVerifyCode(email);
-        if(code == null) return "请先获取验证码";
-        if(!code.equals(info.getCode())) return "验证码错误，请重新输入";
+        if(code == null) return "Please get the verification code first";
+        if(!code.equals(info.getCode())) return "Incorrect verification code, please re-enter";
         return null;
     }
 
     /**
-     * 移除Redis中存储的邮件验证码
-     * @param email 电邮
+     * Removes the email verification code stored in Redis
+     * @param email the email
      */
     private void deleteEmailVerifyCode(String email){
         String key = Const.VERIFY_EMAIL_DATA + email;
@@ -153,9 +153,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     /**
-     * 获取Redis中存储的邮件验证码
-     * @param email 电邮
-     * @return 验证码
+     * Gets the email verification code stored in Redis
+     * @param email the email
+     * @return the verification code
      */
     private String getEmailVerifyCode(String email){
         String key = Const.VERIFY_EMAIL_DATA + email;
@@ -163,9 +163,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     /**
-     * 针对IP地址进行邮件验证码获取限流
-     * @param address 地址
-     * @return 是否通过验证
+     * Rate limits the email verification code requests for a specific IP address
+     * @param address the address
+     * @return whether the verification passed
      */
     private boolean verifyLimit(String address) {
         String key = Const.VERIFY_EMAIL_LIMIT + address;
@@ -173,9 +173,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     /**
-     * 通过用户名或邮件地址查找用户
-     * @param text 用户名或邮件
-     * @return 账户实体
+     * Finds an account by username or email
+     * @param text the username or email
+     * @return the account entity
      */
     public Account findAccountByNameOrEmail(String text){
         return this.query()
@@ -185,18 +185,18 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     /**
-     * 查询指定邮箱的用户是否已经存在
-     * @param email 邮箱
-     * @return 是否存在
+     * Checks if an account with the specified email already exists
+     * @param email the email
+     * @return whether the account exists
      */
     private boolean existsAccountByEmail(String email){
         return this.baseMapper.exists(Wrappers.<Account>query().eq("email", email));
     }
 
     /**
-     * 查询指定用户名的用户是否已经存在
-     * @param username 用户名
-     * @return 是否存在
+     * Checks if an account with the specified username already exists
+     * @param username the username
+     * @return whether the account exists
      */
     private boolean existsAccountByUsername(String username){
         return this.baseMapper.exists(Wrappers.<Account>query().eq("username", username));

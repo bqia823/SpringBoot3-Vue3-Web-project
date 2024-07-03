@@ -3,8 +3,9 @@ package com.example.utils;
 import org.springframework.stereotype.Component;
 
 /**
- * 雪花算法ID生成器
+ * Snowflake algorithm ID generator
  */
+
 @Component
 public class SnowflakeIdGenerator {
     private static final long START_TIMESTAMP = 1691087910202L;
@@ -42,9 +43,10 @@ public class SnowflakeIdGenerator {
     }
 
     /**
-     * 生成一个新的雪花算法ID加锁
-     * @return 雪花ID
+     * Generates a new Snowflake ID with locking
+     * @return the Snowflake ID
      */
+
     public synchronized long nextId() {
         long timestamp = getCurrentTimestamp();
         if (timestamp < lastTimestamp) {

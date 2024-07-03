@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * SpringSecurity相关配置
+ * SpringSecurity Relevant Configuration
  */
 @Configuration
 public class SecurityConfiguration {
@@ -44,10 +44,10 @@ public class SecurityConfiguration {
     AccountService service;
 
     /**
-     * 针对于 SpringSecurity 6 的新版配置方法
-     * @param http 配置器
-     * @return 自动构建的内置过滤器链
-     * @throws Exception 可能的异常
+     * Configuration method for the new version of Spring Security 6
+     * @param http the configuration object
+     * @return the automatically built default filter chain
+     * @throws Exception possible exceptions
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -80,15 +80,16 @@ public class SecurityConfiguration {
     }
 
     /**
-     * 将多种类型的Handler整合到同一个方法中，包含：
-     * - 登录成功
-     * - 登录失败
-     * - 未登录拦截/无权限拦截
-     * @param request 请求
-     * @param response 响应
-     * @param exceptionOrAuthentication 异常或是验证实体
-     * @throws IOException 可能的异常
+     * Integrates multiple types of Handlers into a single method, including:
+     * - Login success
+     * - Login failure
+     * - Unauthorized access interception/Access denied interception
+     * @param request the request
+     * @param response the response
+     * @param exceptionOrAuthentication the exception or authentication object
+     * @throws IOException possible exceptions
      */
+
     private void handleProcess(HttpServletRequest request,
                                HttpServletResponse response,
                                Object exceptionOrAuthentication) throws IOException {
@@ -105,7 +106,7 @@ public class SecurityConfiguration {
             Account account = service.findAccountByNameOrEmail(user.getUsername());
             String jwt = utils.createJwt(user, account.getUsername(), account.getId());
             if(jwt == null) {
-                writer.write(RestBean.forbidden("登录验证频繁，请稍后再试").asJsonString());
+                writer.write(RestBean.forbidden("Login attempts are too frequent, please try again later.").asJsonString());
             } else {
                 AuthorizeVO vo = account.asViewObject(AuthorizeVO.class, o -> o.setToken(jwt));
                 vo.setExpire(utils.expireTime());
@@ -115,11 +116,11 @@ public class SecurityConfiguration {
     }
 
     /**
-     * 退出登录处理，将对应的Jwt令牌列入黑名单不再使用
-     * @param request 请求
-     * @param response 响应
-     * @param authentication 验证实体
-     * @throws IOException 可能的异常
+     * Handles logout by blacklisting the corresponding JWT token to prevent further use
+     * @param request the request
+     * @param response the response
+     * @param authentication the authentication object
+     * @throws IOException possible exceptions
      */
     private void onLogoutSuccess(HttpServletRequest request,
                                  HttpServletResponse response,
@@ -128,9 +129,9 @@ public class SecurityConfiguration {
         PrintWriter writer = response.getWriter();
         String authorization = request.getHeader("Authorization");
         if(utils.invalidateJwt(authorization)) {
-            writer.write(RestBean.success("退出登录成功").asJsonString());
+            writer.write(RestBean.success("Logout successful.").asJsonString());
             return;
         }
-        writer.write(RestBean.failure(400, "退出登录失败").asJsonString());
+        writer.write(RestBean.failure(400, "\n" + "Logout failed.").asJsonString());
     }
 }

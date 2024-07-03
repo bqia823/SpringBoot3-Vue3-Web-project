@@ -10,7 +10,7 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * 数据库中的用户信息
+ * User information in database
  */
 @Data
 @TableName("db_account")

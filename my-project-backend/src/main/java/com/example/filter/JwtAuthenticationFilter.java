@@ -18,8 +18,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 /**
- * 用于对请求头中Jwt令牌进行校验的工具，为当前请求添加用户验证信息
- * 并将用户的ID存放在请求对象属性中，方便后续使用
+ * Utility for validating JWT tokens in request headers.
+ * Adds user authentication information to the current request
+ * and stores the user's ID in the request object attributes
+ * for subsequent use.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

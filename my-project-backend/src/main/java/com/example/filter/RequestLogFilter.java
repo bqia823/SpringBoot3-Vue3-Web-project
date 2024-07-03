@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Set;
 
 /**
- * 请求日志过滤器，用于记录所有用户请求信息
+ * Request logging filter for recording all user request information
  */
 @Slf4j
 @Component
@@ -46,9 +46,9 @@ public class RequestLogFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 判定当前请求url是否不需要日志打印
-     * @param url 路径
-     * @return 是否忽略
+     * Determines whether the current request URL should be ignored for logging
+     * @param url the URL path
+     * @return whether to ignore
      */
     private boolean isIgnoreUrl(String url){
         for (String ignore : ignores) {
@@ -58,35 +58,37 @@ public class RequestLogFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 请求结束时的日志打印，包含处理耗时以及响应结果
-     * @param wrapper 用于读取响应结果的包装类
-     * @param startTime 起始时间
+     * Logs request information at the end, including processing
+     * time and response result
+     * @param wrapper wrapper for reading the response content
+     * @param startTime start time
      */
-    public void logRequestEnd(ContentCachingResponseWrapper wrapper, long startTime){
+    public void logRequestEnd(ContentCachingResponseWrapper wrapper, long startTime) {
         long time = System.currentTimeMillis() - startTime;
         int status = wrapper.getStatus();
         String content = status != 200 ?
-                status + " 错误" : new String(wrapper.getContentAsByteArray());
-        log.info("请求处理耗时: {}ms | 响应结果: {}", time, content);
+                status + " Error" : new String(wrapper.getContentAsByteArray());
+        log.info("Request processing time: {}ms | Response result: {}", time, content);
     }
 
     /**
-     * 请求开始时的日志打印，包含请求全部信息，以及对应用户角色
-     * @param request 请求
+     * Logs request information at the start, including all request
+     * details and corresponding user roles
+     * @param request the request
      */
-    public void logRequestStart(HttpServletRequest request){
+    public void logRequestStart(HttpServletRequest request) {
         long reqId = generator.nextId();
         MDC.put("reqId", String.valueOf(reqId));
         JSONObject object = new JSONObject();
         request.getParameterMap().forEach((k, v) -> object.put(k, v.length > 0 ? v[0] : null));
         Object id = request.getAttribute(Const.ATTR_USER_ID);
-        if(id != null) {
+        if (id != null) {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            log.info("请求URL: \"{}\" ({}) | 远程IP地址: {} │ 身份: {} (UID: {}) | 角色: {} | 请求参数列表: {}",
+            log.info("Request URL: \"{}\" ({}) | Remote IP address: {} │ Identity: {} (UID: {}) | Roles: {} | Request parameters: {}",
                     request.getServletPath(), request.getMethod(), request.getRemoteAddr(),
                     user.getUsername(), id, user.getAuthorities(), object);
         } else {
-            log.info("请求URL: \"{}\" ({}) | 远程IP地址: {} │ 身份: 未验证 | 请求参数列表: {}",
+            log.info("Request URL: \"{}\" ({}) | Remote IP address: {} │ Identity: Unauthenticated | Request parameters: {}",
                     request.getServletPath(), request.getMethod(), request.getRemoteAddr(), object);
         }
     }

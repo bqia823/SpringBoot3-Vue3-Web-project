@@ -7,8 +7,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * 一般Web服务相关配置
+ * General web service configuration
  */
+
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
 

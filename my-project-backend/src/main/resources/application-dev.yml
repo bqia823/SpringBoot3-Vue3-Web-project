@@ -1,4 +1,4 @@
-# 开发环境配置
+# Development Environment Configuration
 springdoc:
   paths-to-match: /api/**
   swagger-ui:

@@ -1,4 +1,4 @@
-#生产环境配置
+# Production Environment Configuration
 server:
   port: 80
 springdoc:

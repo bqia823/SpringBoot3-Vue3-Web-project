@@ -6,8 +6,9 @@ import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 /**
- * 密码重置表单实体
+ * Password reset form entity
  */
+
 @Data
 public class EmailResetVO {
     @Email
